@@ -70,7 +70,7 @@ class Login extends StatelessWidget {
                       text: AppStrings.login,
                       onPressed: () {
                         Validator.validate(_formKey, () {
-                          final username = "+91${mobilenumber.text.trim()}";
+                          final username = mobilenumber.text.trim();
                           final password = passowrd.text.trim();
                           context.read<AuthBloc>().add(
                             AuthEvent.loginWithUsername(username, password),

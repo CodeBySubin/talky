@@ -1,4 +1,4 @@
-import 'package:agora_chat_sdk/agora_chat_sdk.dart';
+// import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,13 +20,13 @@ void main() async {
   await setupLocator();
 
   // Agora SDK init
-  final options = ChatOptions(
-    appKey: '611365630#1572094',
-    debugMode: true,
-    autoLogin: false,
-  );
-  await ChatClient.getInstance.init(options);
-  await ChatClient.getInstance.startCallback();
+  // final options = ChatOptions(
+  //   appKey: '611365630#1572094',
+  //   debugMode: true,
+  //   autoLogin: false,
+  // );
+  // await ChatClient.getInstance.init(options);
+  // await ChatClient.getInstance.startCallback();
 
   runApp(const MyApp());
 }
@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<VideoCallBloc>(create: (_) => sl<VideoCallBloc>()),
-          BlocProvider(create: (_) => sl<ChatBloc>()),
+          // BlocProvider(create: (_) => sl<ChatBloc>()),
           BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
           BlocProvider(create: (_) => sl<UserBloc>()),
         ],

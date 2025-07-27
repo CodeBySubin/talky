@@ -107,7 +107,7 @@ class _OtpState extends State<Otp> {
                           () => context.read<AuthBloc>().add(
                             AuthEvent.saveUser(
                              widget.user.name,
-                              widget.user.mobile,
+                              widget.user.mobile.replaceAll("+", ""),
                               widget.user.password,
                             ),
                           ),

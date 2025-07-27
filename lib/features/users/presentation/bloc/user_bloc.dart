@@ -15,8 +15,10 @@ class UserBloc extends Bloc<UserEvent, UserSatate> {
     emit(UserSatate.loading());
     final users = await _fetchUsers();
     final res = await dio.get(
-        'https://test-api-4u0w.onrender.com/rtc/testchannel/publisher/${event.uid}',
+        'https://test-api-4u0w.onrender.com/rtc/testchannel/publisher/917012124747',
       );
+              print("ressssssssssssssssssss${res}");
+
       if (res.statusCode == 200) {
         final token = res.data['token'];
     emit(UserSatate.loaded(users,token));

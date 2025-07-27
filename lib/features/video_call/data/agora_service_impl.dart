@@ -13,8 +13,10 @@ class AgoraServiceImpl implements AgoraRepository {
 
   @override
   RtcEngine? get engine => _engine;
+
   @override
   int? get remoteUid => _remoteUid;
+
   @override
   bool get localUserJoined => _localUserJoined;
 
@@ -27,55 +29,78 @@ class AgoraServiceImpl implements AgoraRepository {
     Function(int uid) onRemoteJoined,
     VoidCallback onRemoteLeft,
   ) async {
-    await [Permission.microphone, Permission.camera].request();
+    try {
+      // 🔐 Step 1: Request permissions
+      final micStatus = await Permission.microphone.request();
+      final camStatus = await Permission.camera.request();
 
-    _engine = createAgoraRtcEngine();
-    await _engine!.initialize(RtcEngineContext(
-      appId: appId,
-      channelProfile: ChannelProfileType.channelProfileCommunication,
-    ));
+      if (!micStatus.isGranted || !camStatus.isGranted) {
+        print("❌ Camera or microphone permission denied.");
+        return;
+      }
 
-    _engine!.registerEventHandler(RtcEngineEventHandler(
- onJoinChannelSuccess: (_, __) {
-  print("✅ Local user joined");
-  _localUserJoined = true;
-  onJoined();
-},
-onUserJoined: (_, remoteUid, __) {
-  print("👤 Remote user joined: $remoteUid");
-  _remoteUid = remoteUid;
-  onRemoteJoined(remoteUid);
-},
-onUserOffline: (_, uid, __) {
-  print("❌ Remote user left: $uid");
-  _remoteUid = null;
-  onRemoteLeft();
-},
+      // 🎬 Step 2: Initialize engine
+      _engine = createAgoraRtcEngine();
+      await _engine!.initialize(RtcEngineContext(
+        appId: appId,
+        channelProfile: ChannelProfileType.channelProfileCommunication,
+      ));
 
-    ));
+      // 📞 Step 3: Register event handlers
+      _engine!.registerEventHandler(RtcEngineEventHandler(
+        onJoinChannelSuccess: (_, __) {
+          print("✅ Local user joined");
+          _localUserJoined = true;
+          onJoined();
+        },
+        onUserJoined: (_, remoteUid, __) {
+          print("👤 Remote user joined: $remoteUid");
+          _remoteUid = remoteUid;
+          onRemoteJoined(remoteUid);
+        },
+        onUserOffline: (_, uid, __) {
+          print("❌ Remote user left: $uid");
+          _remoteUid = null;
+          onRemoteLeft();
+        },
+        onError: (errCode, msg) {
+          print("🚨 Agora error [$errCode]: $msg");
+        },
+      ));
 
-    await _engine!.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
-    await _engine!.enableVideo();
-    await _engine!.startPreview();
-    await _engine!.joinChannel(
-      token: token,
-      channelId: channel,
-      uid: uid,
-      options: const ChannelMediaOptions(),
-    );
+      // 🎥 Step 4: Setup video
+      await _engine!.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
+      await _engine!.enableVideo();
+      await _engine!.startPreview();
 
-    print(token);
-    print("//////////////////////////////////");
-    print(channel);
-    print(uid);
+      // 🔗 Step 5: Join the channel
+      await _engine!.joinChannel(
+        token: token,
+        channelId: channel,
+        uid: uid,
+        options: const ChannelMediaOptions(),
+      );
+
+      print("🔐 Token: $token");
+      print("📺 Channel: $channel");
+      print("🧑 UID: $uid");
+    } catch (e, stack) {
+      print("💥 Exception during Agora init: $e");
+      print(stack);
+    }
   }
 
   @override
   Future<void> disposeAgora() async {
-    await _engine?.leaveChannel();
-    await _engine?.release();
-    _engine = null;
-    _remoteUid = null;
-    _localUserJoined = false;
+    try {
+      await _engine?.leaveChannel();
+      await _engine?.release();
+    } catch (e) {
+      print("💥 Error while disposing Agora: $e");
+    } finally {
+      _engine = null;
+      _remoteUid = null;
+      _localUserJoined = false;
+    }
   }
 }

@@ -26,8 +26,8 @@ class AppRouter {
           final extra = state.extra as Map<String, dynamic>;
           return MaterialPage(
             child: VideoCall(
-              channel: extra['channel'],
               token: extra['token'],
+              rid: extra['rid'],
               uid: extra['uid'],
             ),
           );

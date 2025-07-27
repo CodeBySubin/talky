@@ -66,6 +66,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthState.loading());
     try {
+      print(event.phone);
       await loginUser(event.phone, event.password);
       emit(AuthState.success());
     } catch (e) {

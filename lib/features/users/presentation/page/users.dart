@@ -3,12 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talky/core/routes/routes.dart';
 import 'package:talky/core/utils/secure_storage.dart';
-import 'package:talky/di/dependency_injection.dart';
-import 'package:talky/features/users/domain/usecase/user_usecase.dart';
+import 'package:talky/features/users/presentation/bloc/user_bloc.dart';
+import 'package:talky/features/users/presentation/bloc/user_event.dart';
 import 'package:talky/features/users/presentation/bloc/user_state.dart';
-
-import '../bloc/user_bloc.dart';
-import '../bloc/user_event.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -18,6 +15,8 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  String? currentUserPhone;
+
   @override
   void initState() {
     super.initState();
@@ -25,12 +24,15 @@ class _UserPageState extends State<UserPage> {
   }
 
   Future<void> _initialize() async {
-    String? uid = await SecureStorageHelper.getToken('user');
-    context.read<UserBloc>().add(UserEvent.getUsers(int.parse(uid!)));
+    String? phone = await SecureStorageHelper.getToken('user');
+print("phoneeeeeeeeee${phone}");
+    if (phone != null) {
+      setState(() {
+        currentUserPhone = phone;
+      });
 
-    // if (uid != null) {
-    //   context.read<UserBloc>().add(UserEvent.token(int.parse(uid)));
-    // }
+      context.read<UserBloc>().add(UserEvent.getUsers(int.parse(phone)));
+    }
   }
 
   @override
@@ -41,55 +43,73 @@ class _UserPageState extends State<UserPage> {
         builder: (context, state) {
           return state.whenOrNull(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                loaded:
-                    (users, token) => ListView.builder(
-                      itemCount: users.length,
-                      itemBuilder:
-                          (_, i) => ListTile(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                loaded: (users, token) {
+                  final filteredUsers = users
+                      .where((user) => user.phone != currentUserPhone)
+                      .toList();
+
+                  if (filteredUsers.isEmpty) {
+                    return const Center(child: Text("No other users found"));
+                  }
+
+                  return ListView.builder(
+                    itemCount: filteredUsers.length,
+                    itemBuilder: (_, i) {
+                      final user = filteredUsers[i];
+                      return ListTile(
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(user.name),
+                            Row(
                               children: [
-                                Text(users[i].name),
-                                Container(
-                                  color: Colors.amber,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      context.pushNamed(
-                                        RouteNames.chat,
-                                        pathParameters: {
-                                          'userId': users[i].phone,
-                                        },
-                                      );
-                                    },
-                                    child: Icon(Icons.call),
+                                GestureDetector(
+                                  onTap: () {
+                                    context.pushNamed(
+                                      RouteNames.chat,
+                                      pathParameters: {'userId': user.phone},
+                                    );
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: Icon(
+                                      Icons.call,
+                                      color: Colors.green,
+                                    ),
                                   ),
                                 ),
-                                Container(
-                                  color: Colors.amber,
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      String? uid =
-                                          await SecureStorageHelper.getToken(
-                                            'user',
-                                          );
-                                      context.pushNamed(
-                                        RouteNames.videoCall,
-                                        extra: {
-                                          'channel': 'testchannel',
-                                          'token': token,
-                                          'uid': int.parse(uid!),
-                                        },
-                                      );
-                                    },
-                                    child: Icon(Icons.video_call),
+                                GestureDetector(
+                                  onTap: () {
+                                    context.pushNamed(
+                                      RouteNames.videoCall,
+                                      extra: {
+                                        'rid': int.parse(user.phone.substring(0,6)),
+                                        'token': token,
+                                        'uid': int.parse(currentUserPhone!.substring(0,6)),
+                                      },
+                                    );
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: Icon(
+                                      Icons.video_call,
+                                      color: Colors.blue,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            subtitle: Text(users[i].phone),
-                          ),
-                    ),
-                // error: (message) => Center(child: Text("Error: $message")),
+                          ],
+                        ),
+                        subtitle: Text(user.phone),
+                      );
+                    },
+                  );
+                },
               ) ??
               const SizedBox.shrink();
         },

@@ -13,23 +13,23 @@ class VideoCallBloc extends Bloc<VideoCallEvents, VideoCallStates> {
     on<Ended>(_onEnded);
   }
 
-  Future<void> _onStart(Started event, Emitter<VideoCallStates> emit) async {
+Future<void> _onStart(Started event, Emitter<VideoCallStates> emit) async {
+  await agora.initAgora(
+    event.channel,
+    event.token,
+    event.uid,
+    () {
+      emit(Connected(
+        engine: agora.engine,
+        localUserJoined: agora.localUserJoined,
+        remoteUid: agora.remoteUid,
+      ));
+    },
+    (uid) => add(VideoCallEvents.remoteJoined(uid)),
+    () => add(const VideoCallEvents.remoteLeft()),
+  );
+}
 
-    await agora.initAgora(
-      event.channel,
-      event.token,
-      event.uid,
-      () {
-        emit(Connected(
-          engine: agora.engine,
-          localUserJoined: agora.localUserJoined,
-          remoteUid: agora.remoteUid,
-        ));
-      },
-      (uid) => add(VideoCallEvents.remoteJoined(uid)),
-      () => add(const VideoCallEvents.remoteLeft()),
-    );
-  }
 
   void _onRemoteJoined(RemoteJoined event, Emitter<VideoCallStates> emit) {
     emit(Connected(

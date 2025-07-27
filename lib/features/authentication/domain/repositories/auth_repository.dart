@@ -59,21 +59,29 @@ class AuthRepositoryImpl implements AuthRepository {
         'createdAt': FieldValue.serverTimestamp(),
       },
     );
-    print(name);
-    print(phone);
-    print(password);
     SecureStorageHelper.saveToken(phone, "user");
   }
+@override
+Future<void> loginWithUsername(String phone, String password) async {
+  try {
+    final List<Map<String, dynamic>> users =
+        await _apiClient.getCollection(collectionPath: 'users');
 
-  @override
-  Future<void> loginWithUsername(String phone, String password) async {
-    final users = await _apiClient.getCollection(collectionPath: 'users');
     final match = users.firstWhere(
-      (user) => user['phone'] == phone && user['password'] == password,
+      (user) =>
+          user['phone']?.toString() == phone &&
+          user['password']?.toString() == password,
+      orElse: () => {},
     );
+
     if (match.isEmpty) {
-      throw Exception("Invalid phone or password");
+      throw Exception("Invalid phone number or password");
     }
-    SecureStorageHelper.saveToken(phone, "user");
+    await SecureStorageHelper.saveToken(phone, "user");
+
+  } catch (e) {
+    throw Exception("Login failed: ${e.toString()}");
   }
+}
+
 }

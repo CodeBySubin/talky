@@ -10,6 +10,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<List<UserEntity>> fetchUsers() async {
     final data = await _apiClient.getCollection(collectionPath: 'users');
+    print(data);
     return data
         .map(
           (e) => UserEntity(uid: e["uid"], name: e['name'], phone: e['phone']),

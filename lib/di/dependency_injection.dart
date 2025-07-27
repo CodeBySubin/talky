@@ -1,4 +1,4 @@
-import 'package:agora_chat_sdk/agora_chat_sdk.dart';
+// import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
@@ -42,19 +42,19 @@ Future<void> setupLocator() async {
   // 🔹 External Services
   // =====================
   sl.registerLazySingleton(() => FirebaseAuth.instance);
-  sl.registerLazySingleton<ChatClient>(() => ChatClient.getInstance);
+  // sl.registerLazySingleton<ChatClient>(() => ChatClient.getInstance);
 
   // =====================
   // 🔹 Data Sources
   // =====================
-  sl.registerLazySingleton(() => AgoraChatDatasource(sl()));
+  // sl.registerLazySingleton(() => AgoraChatDatasource(sl()));
 
   // =====================
   // 🔹 Repositories
   // =====================
-  sl.registerLazySingleton<AgoraChatRepository>(
-    () => AgoraChatRepositoryImpl(sl()),
-  );
+  // sl.registerLazySingleton<AgoraChatRepository>(
+  //   () => AgoraChatRepositoryImpl(sl()),
+  // );
 
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(sl<FirebaseAuth>(), sl<FirestoreApiClient>()),
@@ -86,7 +86,7 @@ Future<void> setupLocator() async {
     ),
   );
 
-  sl.registerFactory(() => ChatBloc(sl(), sl()));
+  // sl.registerFactory(() => ChatBloc(sl(), sl()));
   sl.registerFactory(() => VideoCallBloc(sl()));
   sl.registerLazySingleton(() => SaveUser(sl()));
   sl.registerLazySingleton(() => LoginUser(sl()));
